@@ -45,6 +45,7 @@ box-shadow:0 5px 15px rgba(0,0,0,.3);
 .rank{
 font-size:28px;
 margin-right:15px;
+min-width:40px;
 }
 .left{
 display:flex;
@@ -138,13 +139,20 @@ async function loadScores(){
 
     teams.sort((a, b) => b.total - a.total);
 
+    const anyScores = teams.some(t => t.total > 0);
+
     board.innerHTML = "";
+
     teams.forEach((team, index) => {
-      let emoji = index + 1;
+      let emoji = "";
       let css = "";
-      if(index == 0){ emoji = "🥇"; css = "gold"; }
-      else if(index == 1){ emoji = "🥈"; css = "silver"; }
-      else if(index == 2){ emoji = "🥉"; css = "bronze"; }
+
+      // Only show medal if games have started AND this team has points AND is top 3
+      if (anyScores && team.total > 0) {
+        if (index == 0) { emoji = "🥇"; css = "gold"; }
+        else if (index == 1) { emoji = "🥈"; css = "silver"; }
+        else if (index == 2) { emoji = "🥉"; css = "bronze"; }
+      }
 
       board.innerHTML += `
         <div class="team ${css}">
