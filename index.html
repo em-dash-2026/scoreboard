@@ -1,55 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <title>Ultimate Summer Games Leaderboard</title>
-
 <style>
-
 *{
 margin:0;
 padding:0;
 box-sizing:border-box;
 font-family:Arial,Helvetica,sans-serif;
 }
-
 body{
-
 background:#101820;
 color:white;
 padding:20px;
-
 }
-
 h1{
-
 text-align:center;
 font-size:32px;
 margin-bottom:5px;
-
 }
-
 .subtitle{
-
 text-align:center;
 color:#bbbbbb;
 margin-bottom:30px;
-
 }
-
 #leaderboard{
-
 display:flex;
 flex-direction:column;
 gap:15px;
-
+max-width:700px;
+margin:0 auto;
 }
-
 .team{
-
 background:#1d2733;
 border-radius:16px;
 padding:18px;
@@ -57,170 +41,138 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 box-shadow:0 5px 15px rgba(0,0,0,.3);
-
 }
-
 .rank{
-
 font-size:28px;
 margin-right:15px;
-
 }
-
 .left{
-
 display:flex;
 align-items:center;
-
 }
-
 .name{
-
 font-size:20px;
 font-weight:bold;
-
 }
-
 .score{
-
 font-size:34px;
 font-weight:bold;
-
 }
-
-.gold{
-
-border-left:8px solid gold;
-
-}
-
-.silver{
-
-border-left:8px solid silver;
-
-}
-
-.bronze{
-
-border-left:8px solid #cd7f32;
-
-}
-
+.gold{ border-left:8px solid gold; }
+.silver{ border-left:8px solid silver; }
+.bronze{ border-left:8px solid #cd7f32; }
 .updated{
-
 margin-top:30px;
 text-align:center;
 font-size:14px;
 color:#999;
-
 }
-
+.error-box{
+background:#2a1a1a;
+border:1px solid #c0392b;
+border-radius:12px;
+padding:20px;
+max-width:700px;
+margin:20px auto;
+color:#e74c3c;
+font-size:14px;
+line-height:1.6;
+}
+.error-box strong{
+display:block;
+font-size:16px;
+margin-bottom:10px;
+}
+.error-box p{
+color:#ccc;
+margin-top:8px;
+}
+.loading{
+text-align:center;
+color:#888;
+padding:40px;
+font-size:16px;
+}
 </style>
-
 </head>
-
 <body>
 
 <h1>🏆 Ultimate Summer Games</h1>
-
-<div class="subtitle">
-
-Live Leaderboard
-
-</div>
-
-<div id="leaderboard"></div>
-
+<div class="subtitle">Live Leaderboard</div>
+<div id="leaderboard"><div class="loading">Loading scores...</div></div>
 <div class="updated" id="updated"></div>
 
 <script>
-
-const sheetID="1kkHdVERNjb06K0bBtJJ8iGMI4nE-56cPEmnPKstpcXI";
-
-const url=`https://opensheet.elk.sh/${sheetID}/Scores`;
+// *** REPLACE THE URL BELOW WITH YOUR GOOGLE APPS SCRIPT DEPLOYMENT URL ***
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6RQq9MtXLTgrOkDeWFZrsUAVykJeOORv9Z7jRk9RTd6lzfg77kEVLC8x5f_yAihJBBA/exec";
 
 async function loadScores(){
+  const board = document.getElementById("leaderboard");
+  try {
+    const response = await fetch(APPS_SCRIPT_URL + "?t=" + Date.now(), {
+      cache: "no-store"
+    });
 
-const response = await fetch(url + "?t=" + Date.now(), {
-  cache: "no-store"
-});
-const data=await response.json();
+    if (!response.ok) throw new Error("HTTP error: " + response.status);
 
-const teams=data.map(row=>({
+    const data = await response.json();
 
-name:row.Teams,
-total:Number(row.Total)||0
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error("No data returned from the sheet.");
+    }
 
-}));
+    const sample = data[0];
+    const nameKey  = Object.keys(sample).find(k => k.trim().toLowerCase() === "teams");
+    const totalKey = Object.keys(sample).find(k => k.trim().toLowerCase() === "total");
 
-teams.sort((a,b)=>b.total-a.total);
+    if (!nameKey || !totalKey) {
+      throw new Error("Could not find 'Teams' or 'Total' columns. Found: " + Object.keys(sample).join(", "));
+    }
 
-const board=document.getElementById("leaderboard");
+    const teams = data
+      .map(row => ({
+        name: row[nameKey],
+        total: Number(row[totalKey]) || 0
+      }))
+      .filter(t => t.name && t.name.trim() !== "");
 
-board.innerHTML="";
+    teams.sort((a, b) => b.total - a.total);
 
-teams.forEach((team,index)=>{
+    board.innerHTML = "";
+    teams.forEach((team, index) => {
+      let emoji = index + 1;
+      let css = "";
+      if(index == 0){ emoji = "🥇"; css = "gold"; }
+      else if(index == 1){ emoji = "🥈"; css = "silver"; }
+      else if(index == 2){ emoji = "🥉"; css = "bronze"; }
 
-let medal=index+1;
+      board.innerHTML += `
+        <div class="team ${css}">
+          <div class="left">
+            <div class="rank">${emoji}</div>
+            <div class="name">${team.name}</div>
+          </div>
+          <div class="score">${team.total}</div>
+        </div>`;
+    });
 
-let emoji=medal;
+    document.getElementById("updated").innerHTML =
+      "Last Updated: " + new Date().toLocaleTimeString();
 
-let css="";
-
-if(index==0){
-
-emoji="🥇";
-css="gold";
-
-}
-
-else if(index==1){
-
-emoji="🥈";
-css="silver";
-
-}
-
-else if(index==2){
-
-emoji="🥉";
-css="bronze";
-
-}
-
-board.innerHTML+=`
-
-<div class="team ${css}">
-
-<div class="left">
-
-<div class="rank">${emoji}</div>
-
-<div class="name">${team.name}</div>
-
-</div>
-
-<div class="score">
-
-${team.total}
-
-</div>
-
-</div>
-
-`;
-
-});
-
-document.getElementById("updated").innerHTML=
-"Last Updated: "+new Date().toLocaleTimeString();
-
+  } catch(err) {
+    board.innerHTML = `
+      <div class="error-box">
+        <strong>⚠️ Could not load scores</strong>
+        <p>Error: ${err.message}</p>
+        <p>Make sure your Apps Script URL is correctly pasted into the APPS_SCRIPT_URL variable.</p>
+      </div>`;
+    document.getElementById("updated").innerHTML =
+      "Failed at: " + new Date().toLocaleTimeString() + " — retrying in 5s";
+  }
 }
 
 loadScores();
-
-setInterval(loadScores,5000);
-
+setInterval(loadScores, 5000);
 </script>
 
 </body>
