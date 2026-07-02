@@ -141,8 +141,9 @@ const url=`https://opensheet.elk.sh/${sheetID}/Scores`;
 
 async function loadScores(){
 
-const response=await fetch(url);
-
+const response = await fetch(url + "?t=" + Date.now(), {
+  cache: "no-store"
+});
 const data=await response.json();
 
 const teams=data.map(row=>({
