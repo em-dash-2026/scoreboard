@@ -55,10 +55,6 @@ align-items:center;
 font-size:20px;
 font-weight:bold;
 }
-.score{
-font-size:34px;
-font-weight:bold;
-}
 .gold{ border-left:8px solid gold; }
 .silver{ border-left:8px solid silver; }
 .bronze{ border-left:8px solid #cd7f32; }
@@ -104,7 +100,6 @@ font-size:16px;
 <div class="updated" id="updated"></div>
 
 <script>
-// *** REPLACE THE URL BELOW WITH YOUR GOOGLE APPS SCRIPT DEPLOYMENT URL ***
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6RQq9MtXLTgrOkDeWFZrsUAVykJeOORv9Z7jRk9RTd6lzfg77kEVLC8x5f_yAihJBBA/exec";
 
 async function loadScores(){
@@ -160,7 +155,6 @@ async function loadScores(){
             <div class="rank">${emoji}</div>
             <div class="name">${team.name}</div>
           </div>
-          <div class="score">${team.total}</div>
         </div>`;
     });
 
