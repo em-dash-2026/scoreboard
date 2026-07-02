@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Ultimate Summer Games Leaderboard</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+
+background:#101820;
+color:white;
+padding:20px;
+
+}
+
+h1{
+
+text-align:center;
+font-size:32px;
+margin-bottom:5px;
+
+}
+
+.subtitle{
+
+text-align:center;
+color:#bbbbbb;
+margin-bottom:30px;
+
+}
+
+#leaderboard{
+
+display:flex;
+flex-direction:column;
+gap:15px;
+
+}
+
+.team{
+
+background:#1d2733;
+border-radius:16px;
+padding:18px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+box-shadow:0 5px 15px rgba(0,0,0,.3);
+
+}
+
+.rank{
+
+font-size:28px;
+margin-right:15px;
+
+}
+
+.left{
+
+display:flex;
+align-items:center;
+
+}
+
+.name{
+
+font-size:20px;
+font-weight:bold;
+
+}
+
+.score{
+
+font-size:34px;
+font-weight:bold;
+
+}
+
+.gold{
+
+border-left:8px solid gold;
+
+}
+
+.silver{
+
+border-left:8px solid silver;
+
+}
+
+.bronze{
+
+border-left:8px solid #cd7f32;
+
+}
+
+.updated{
+
+margin-top:30px;
+text-align:center;
+font-size:14px;
+color:#999;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🏆 Ultimate Summer Games</h1>
+
+<div class="subtitle">
+
+Live Leaderboard
+
+</div>
+
+<div id="leaderboard"></div>
+
+<div class="updated" id="updated"></div>
+
+<script>
+
+const sheetID="1kkHdVERNjb06K0bBtJJ8iGMI4nE-56cPEmnPKstpcXI";
+
+const url=`https://opensheet.elk.sh/${sheetID}/Scores`;
+
+async function loadScores(){
+
+const response=await fetch(url);
+
+const data=await response.json();
+
+const teams=data.map(row=>({
+
+name:row.Teams,
+total:Number(row.Total)||0
+
+}));
+
+teams.sort((a,b)=>b.total-a.total);
+
+const board=document.getElementById("leaderboard");
+
+board.innerHTML="";
+
+teams.forEach((team,index)=>{
+
+let medal=index+1;
+
+let emoji=medal;
+
+let css="";
+
+if(index==0){
+
+emoji="🥇";
+css="gold";
+
+}
+
+else if(index==1){
+
+emoji="🥈";
+css="silver";
+
+}
+
+else if(index==2){
+
+emoji="🥉";
+css="bronze";
+
+}
+
+board.innerHTML+=`
+
+<div class="team ${css}">
+
+<div class="left">
+
+<div class="rank">${emoji}</div>
+
+<div class="name">${team.name}</div>
+
+</div>
+
+<div class="score">
+
+${team.total}
+
+</div>
+
+</div>
+
+`;
+
+});
+
+document.getElementById("updated").innerHTML=
+"Last Updated: "+new Date().toLocaleTimeString();
+
+}
+
+loadScores();
+
+setInterval(loadScores,5000);
+
+</script>
+
+</body>
+</html>
